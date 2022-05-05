@@ -2,7 +2,6 @@ package status
 
 import (
 	"context"
-	"fmt"
 	"io"
 	"strings"
 
@@ -36,7 +35,6 @@ func GetMemUsage() ([]MemoryStat, error) {
 	for i := 0; i < len(containers); i++ {
 		var m MemoryStat
 		m.Id = containers[i].ID
-		fmt.Println(m.Id)
 		m.Name = strings.Split(containers[i].Names[0], "/")[1]
 
 		s, err := cli.ContainerStats(ctx, containers[i].ID, false)
