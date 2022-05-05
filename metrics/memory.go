@@ -37,7 +37,7 @@ var (
 	)
 )
 
-func RecordMetrics(m status.MemoryStat, interval *int, wg *sync.WaitGroup) {
+func RecordMetrics(m status.MemoryStat, wg *sync.WaitGroup) {
 	RunGauge.WithLabelValues(m.Name, m.Id[:12], fmt.Sprintf("%dM", m.MemLimit/1024/1024)).Set(decimal(m.Usage))
 	RunSummary.WithLabelValues(m.Name, m.Id[:12], fmt.Sprintf("%dM", m.MemLimit/1024/1024)).Observe(decimal(m.Usage))
 	wg.Done()

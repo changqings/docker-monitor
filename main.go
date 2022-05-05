@@ -58,14 +58,14 @@ func main() {
 			}
 			for i := 0; i < len(ms); i++ {
 				wg.Add(1)
-				go metrics.RecordMetrics(ms[i], interval, &wg)
+				go metrics.RecordMetrics(ms[i], &wg)
 				wg.Wait()
 			}
-			time.Sleep(5 * time.Second)
+			time.Sleep(time.Duration(*interval) * time.Second)
 		}
 	}()
 
 	http.Handle("/metrics", promhttp.Handler())
-	http.ListenAndServe(":8085", nil)
+	http.ListenAndServe(":18085", nil)
 	wg.Wait()
 }
