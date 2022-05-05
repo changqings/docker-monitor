@@ -25,12 +25,8 @@ package main
 
 import (
 	"docker-client/metrics"
-	"docker-client/status"
 	"flag"
-	"log"
 	"net/http"
-	"sync"
-	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
@@ -49,21 +45,7 @@ func main() {
 	prometheus.Unregister(collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}))
 	// This is should be goroutine in loop
 
-	var wg sync.WaitGroup
-	go func() {
-		for {
-			ms, err := status.GetMemUsage()
-			if err != nil {
-				log.Panicf("Run GetMemUeage() err: %v", err)
-			}
-			for i := 0; i < len(ms); i++ {
-				wg.Add(1)
-				go metrics.RecordMetrics(ms[i], &wg)
-				wg.Wait()
-			}
-			time.Sleep(time.Duration(*interval) * time.Second)
-		}
-	}()
+	go metrics.RecordMetrics(interval)
 
 	http.Handle("/metrics", promhttp.Handler())
 	http.ListenAndServe(":18085", nil)

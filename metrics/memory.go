@@ -3,8 +3,9 @@ package metrics
 import (
 	"docker-client/status"
 	"fmt"
+	"log"
 	"strconv"
-	"sync"
+	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/promauto"
@@ -28,6 +29,7 @@ var (
 		Name:       "container_memory_usage_sumary",
 		Help:       "container memory usage sumary with 0.5,0.9,0.99",
 		Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
+		MaxAge:     time.Duration(120 * time.Second),
 	},
 		[]string{
 			"container_name",
@@ -37,10 +39,20 @@ var (
 	)
 )
 
-func RecordMetrics(m status.MemoryStat, wg *sync.WaitGroup) {
-	RunGauge.WithLabelValues(m.Name, m.Id[:12], fmt.Sprintf("%dM", m.MemLimit/1024/1024)).Set(decimal(m.Usage))
-	RunSummary.WithLabelValues(m.Name, m.Id[:12], fmt.Sprintf("%dM", m.MemLimit/1024/1024)).Observe(decimal(m.Usage))
-	wg.Done()
+func RecordMetrics(interval *int) {
+	for {
+		ms, err := status.GetMemUsage()
+		if err != nil {
+			log.Panicf("Run GetMemUeage() err: %v", err)
+		}
+		RunGauge.Reset()
+		for _, m := range ms {
+			RunGauge.WithLabelValues(m.Name, m.Id[:12], fmt.Sprintf("%dM", m.MemLimit/1024/1024)).Set(decimal(m.Usage))
+			RunSummary.WithLabelValues(m.Name, m.Id[:12], fmt.Sprintf("%dM", m.MemLimit/1024/1024)).Observe(decimal(m.Usage))
+		}
+		time.Sleep(time.Duration(*interval) * time.Second)
+
+	}
 }
 
 func decimal(f float64) float64 {
