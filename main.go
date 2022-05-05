@@ -67,5 +67,4 @@ func main() {
 
 	http.Handle("/metrics", promhttp.Handler())
 	http.ListenAndServe(":18085", nil)
-	wg.Wait()
 }
