@@ -5,6 +5,7 @@ import (
 	"fmt"
 	"log"
 	"strconv"
+	"sync"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -26,8 +27,8 @@ var (
 
 var (
 	RunSummary = promauto.NewSummaryVec(prometheus.SummaryOpts{
-		Name:       "container_memory_usage_sumary",
-		Help:       "container memory usage sumary with 0.5,0.9,0.99",
+		Name:       "container_memory_usage_summary",
+		Help:       "container memory usage summary with 0.5,0.9,0.99",
 		Objectives: map[float64]float64{0.5: 0.05, 0.9: 0.01, 0.99: 0.001},
 		MaxAge:     time.Duration(120 * time.Second),
 	},
@@ -39,11 +40,12 @@ var (
 	)
 )
 
-func RecordMetrics(interval *int) {
+func RecordMetrics(interval *int, wg *sync.WaitGroup) {
+	defer wg.Done()
 	for {
 		ms, err := status.GetMemUsage()
 		if err != nil {
-			log.Panicf("Run GetMemUeage() err: %v", err)
+			log.Panicf("Run GetMemUsage() err: %v", err)
 		}
 		RunGauge.Reset()
 		for _, m := range ms {

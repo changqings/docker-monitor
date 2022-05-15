@@ -11,11 +11,11 @@ import (
 )
 
 type MemoryStat struct {
-	Id        string
-	Name      string
-	MemUasage int64
-	MemLimit  int64
-	Usage     float64
+	Id       string
+	Name     string
+	MemUsage int64
+	MemLimit int64
+	Usage    float64
 }
 
 func GetMemUsage() ([]MemoryStat, error) {
@@ -54,7 +54,7 @@ func GetMemUsage() ([]MemoryStat, error) {
 		}
 
 		memUsage := js.Get("memory_stats").Get("usage").MustInt64()
-		m.MemUasage = memUsage
+		m.MemUsage = memUsage
 
 		memLimit := js.Get("memory_stats").Get("limit").MustInt64()
 		m.MemLimit = memLimit
