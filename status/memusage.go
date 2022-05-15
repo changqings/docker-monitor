@@ -38,6 +38,8 @@ func GetMemUsage() ([]MemoryStat, error) {
 		m.Name = strings.Split(containers[i].Names[0], "/")[1]
 
 		s, err := cli.ContainerStats(ctx, containers[i].ID, false)
+		defer s.Body.Close()
+
 		if err != nil {
 			return nil, err
 		}
@@ -59,7 +61,6 @@ func GetMemUsage() ([]MemoryStat, error) {
 
 		m.Usage = float64(memUsage) / float64(memLimit) * 100
 
-		s.Body.Close()
 		ms = append(ms, m)
 	}
 
