@@ -27,7 +27,6 @@ import (
 	"docker-client/metrics"
 	"flag"
 	"net/http"
-	"sync"
 
 	"github.com/prometheus/client_golang/prometheus"
 	"github.com/prometheus/client_golang/prometheus/collectors"
@@ -35,7 +34,6 @@ import (
 )
 
 func main() {
-	wg := &sync.WaitGroup{}
 
 	// go cmd.Run ping()
 	interval := flag.Int("i", 10, "-i timeSecond, unit = s")
@@ -46,10 +44,8 @@ func main() {
 	// remove process_xx
 	prometheus.Unregister(collectors.NewProcessCollector(collectors.ProcessCollectorOpts{}))
 	// This is should be goroutine in loop
-	wg.Add(1)
 	go metrics.RecordMetrics(interval, wg)
 
 	http.Handle("/metrics", promhttp.Handler())
 	http.ListenAndServe(":18085", nil)
-	wg.Wait()
 }
