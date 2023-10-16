@@ -5,7 +5,6 @@ import (
 	"fmt"
 	"log"
 	"strconv"
-	"sync"
 	"time"
 
 	"github.com/prometheus/client_golang/prometheus"
@@ -40,9 +39,12 @@ var (
 	)
 )
 
-func RecordMetrics(interval *int, wg *sync.WaitGroup) {
-	defer wg.Done()
-	for {
+func RecordMetrics(interval int) {
+
+	ticker := time.NewTicker(time.Second * time.Duration(interval))
+	defer ticker.Stop()
+
+	for range ticker.C {
 		ms, err := status.GetMemUsage()
 		if err != nil {
 			log.Panicf("Run GetMemUsage() err: %v", err)
@@ -52,8 +54,6 @@ func RecordMetrics(interval *int, wg *sync.WaitGroup) {
 			RunGauge.WithLabelValues(m.Name, m.Id[:12], fmt.Sprintf("%dM", m.MemLimit/1024/1024)).Set(decimal(m.Usage))
 			RunSummary.WithLabelValues(m.Name, m.Id[:12], fmt.Sprintf("%dM", m.MemLimit/1024/1024)).Observe(decimal(m.Usage))
 		}
-		time.Sleep(time.Duration(*interval) * time.Second)
-
 	}
 }
 
